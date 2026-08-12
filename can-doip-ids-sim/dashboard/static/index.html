@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CAN/DoIP Attack Simulation Dashboard</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="title">In-Vehicle Network Attack Simulation</span>
+    <span class="subtitle">CAN BUS / DoIP GATEWAY TESTBED — SIM-01</span>
+  </div>
+  <div id="status-banner">NORMAL</div>
+  <div id="clock">t=0.000s  x1.0</div>
+</header>
+
+<main>
+  <div id="left-col">
+    <div class="panel">
+      <div class="panel-head"><h2>Instrument Cluster</h2><span class="meta" id="diag-session-meta">SESSION: closed</span></div>
+      <div class="panel-body">
+        <div id="cluster">
+          <canvas id="gauge-canvas" width="260" height="150"></canvas>
+          <div id="warning-lights">
+            <div class="warn-light" id="warn-check-engine" data-label="CHECK ENGINE"></div>
+            <div class="warn-light" id="warn-brake" data-label="BRAKE"></div>
+            <div class="warn-light" id="warn-airbag" data-label="AIRBAG"></div>
+            <div class="warn-light" id="warn-diag" data-label="DIAG SESSION"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Vehicle View</h2><span class="meta" id="pos-meta">x=0.0m</span></div>
+      <div class="panel-body">
+        <canvas id="road-canvas" width="900" height="260"></canvas>
+        <div id="readouts">
+          <div class="readout speed"><span class="label">Speed</span><span class="value" id="speed-val">--</span></div>
+          <div class="readout steering"><span class="label">Steering</span><span class="value" id="steering-val">--</span></div>
+          <div class="readout brake"><span class="label">Brake</span><span class="value off" id="brake-val">RELEASED</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Live CAN Bus Traffic</h2><span class="meta" id="msg-rate-meta">0 msg/s</span></div>
+      <div class="panel-body">
+        <canvas id="traffic-canvas" width="900" height="220"></canvas>
+      </div>
+      <div id="legend">
+        <span><span class="dot" style="background:#6b7480"></span>normal ECU</span>
+        <span><span class="dot" style="background:#c1453f"></span>attack traffic</span>
+        <span><span class="dot" style="background:#c98a3a"></span>DoIP-forwarded</span>
+        <span><span class="dot" style="background:#e8c14a"></span>IDS alert</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="right-col">
+    <div class="panel">
+      <div class="panel-head"><h2>Time Control</h2></div>
+      <div class="panel-body">
+        <div class="btn-row">
+          <button id="btn-pause">Pause</button>
+          <button id="btn-resume-rt" class="primary">Resume Real-Time</button>
+        </div>
+        <div class="btn-row" id="speed-buttons">
+          <button data-speed="0.25">0.25x</button>
+          <button data-speed="0.5">0.5x</button>
+          <button data-speed="1" class="active">1x</button>
+          <button data-speed="2">2x</button>
+          <button data-speed="4">4x</button>
+        </div>
+        <div class="btn-row">
+          <button id="btn-reset" class="danger">Reset Scenario</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Launch Attack</h2></div>
+      <div class="panel-body">
+        <label class="field">Attack type
+          <select id="attack-kind">
+            <option value="flood">Flooding / DoS</option>
+            <option value="spoof">Identifier spoofing</option>
+            <option value="fuzz">Fuzzing (random IDs + data)</option>
+            <option value="replay">Replay (captured message)</option>
+            <option value="bus_flood">Bus-wide flood (all signals)</option>
+            <option value="doip">Unauthorized injection via DoIP</option>
+          </select>
+        </label>
+        <label class="field" id="target-field">Target signal
+          <select id="attack-target">
+            <option value="steering">Steering angle</option>
+            <option value="speed" selected>Speed</option>
+            <option value="brake">Brake</option>
+            <option value="diagnostic">Diagnostic (0x7E0)</option>
+          </select>
+        </label>
+        <label class="field">Rate (messages/sec): <span id="rate-out">20</span>
+          <input type="range" id="attack-rate" min="1" max="300" value="20">
+        </label>
+        <label class="field" id="magnitude-field">Spoofed value
+          <span class="hint">steering: deg, speed: km/h, brake: 0/1</span>
+          <input type="number" id="attack-magnitude" value="200">
+        </label>
+        <label class="field" id="authorized-field" style="display:none">
+          <span><input type="checkbox" id="attack-authorized" checked>Routing activation completed first (authorized)</span>
+        </label>
+        <div class="btn-row">
+          <button id="btn-attack-start" class="primary">Start Attack</button>
+          <button id="btn-attack-stop" class="danger">Stop Attack</button>
+        </div>
+        <div class="stat-line">Active: <b id="active-attack-label">none</b></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>IDS Alerts</h2><span class="meta" id="alert-count-badge">0</span></div>
+      <div class="panel-body" style="padding:0"><div id="alert-feed"></div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>DoIP Gateway Events</h2></div>
+      <div class="panel-body" style="padding:0"><div id="doip-feed"></div></div>
+    </div>
+  </div>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>

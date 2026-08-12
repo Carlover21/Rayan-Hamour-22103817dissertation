@@ -216,3 +216,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- project-specific (can-doip-ids-sim) ---
+can-doip-ids-sim/logs/*.csv
+can-doip-ids-sim/results/*.csv
+can-doip-ids-sim/results/*.png
