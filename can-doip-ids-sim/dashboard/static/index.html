@@ -1,3 +1,4 @@
+<!-- Author: Rayan Hamour (22103817) -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -10,7 +11,7 @@
 <header>
   <div class="brand">
     <span class="title">In-Vehicle Network Attack Simulation</span>
-    <span class="subtitle">CAN BUS / DoIP GATEWAY TESTBED — SIM-01</span>
+    <span class="subtitle">CAN BUS / DoIP GATEWAY TESTBED - SIM-01</span>
   </div>
   <div id="status-banner">NORMAL</div>
   <div id="clock">t=0.000s  x1.0</div>
@@ -41,6 +42,8 @@
           <div class="readout speed"><span class="label">Speed</span><span class="value" id="speed-val">--</span></div>
           <div class="readout steering"><span class="label">Steering</span><span class="value" id="steering-val">--</span></div>
           <div class="readout brake"><span class="label">Brake</span><span class="value off" id="brake-val">RELEASED</span></div>
+          <div class="readout rpm"><span class="label">RPM</span><span class="value" id="rpm-val">--</span></div>
+          <div class="readout battery"><span class="label">Battery</span><span class="value" id="battery-val">--</span></div>
         </div>
       </div>
     </div>
@@ -77,6 +80,9 @@
         <div class="btn-row">
           <button id="btn-reset" class="danger">Reset Scenario</button>
         </div>
+        <label class="field" id="scrub-field" style="display:none">History replay: <span id="scrub-out">live</span>
+          <input type="range" id="scrub-slider" min="0" max="1000" value="1000" step="1">
+        </label>
       </div>
     </div>
 

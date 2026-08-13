@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """
 Extended evaluation run: covers the features added after the original
 proposal scope - the bus-off attack, the infotainment-pivot and key-fob-relay

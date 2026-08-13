@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """
 Matplotlib plots for the evaluation chapter: detection rate vs attack
 intensity, and a CAN traffic timeline for a single representative run with

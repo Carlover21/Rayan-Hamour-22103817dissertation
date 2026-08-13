@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """
 Evaluation harness: runs a scenario (normal baseline traffic, optionally
 followed by an attack window), then scores what the IDS did against ground

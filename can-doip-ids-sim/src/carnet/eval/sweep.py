@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """
 Parameter sweeps: runs the same attack at several intensities (and repeats
 each intensity a few times), so the evaluation can report how detection

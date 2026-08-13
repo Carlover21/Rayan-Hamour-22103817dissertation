@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """Unit tests for the bus-off attack and the IDS silence rule."""
 
 from __future__ import annotations

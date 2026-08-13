@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """
 Mocked DoIP gateway: the modelled entry point where an IP-connected tester
 (or attacker) reaches the vehicle and, once "routing activation" succeeds,

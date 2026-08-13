@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """
 Shared configuration for the CAN/DoIP in-vehicle network simulation.
 
@@ -17,14 +18,17 @@ CAN_BITRATE = 500_000  # nominal, virtual bus does not enforce timing at this ra
 # Each entry describes one legitimate, periodic CAN message on the bus.
 # period_s: nominal transmission interval in seconds.
 # jitter_s: +/- random jitter applied around the period to look like real traffic.
-# dlc: data length code (bytes 0-8).
+# dlc: data length code in bytes (classic CAN: 0-8; CAN-FD: up to 64).
+# is_fd: whether this ID is sent as a CAN-FD frame - real vehicles increasingly
+# use FD for ADAS/sensor-fusion payloads that don't fit in 8 bytes.
 ECU_PROFILE = {
-    0x100: {"name": "Engine_RPM_Speed", "period_s": 0.010, "jitter_s": 0.002, "dlc": 8},
-    0x200: {"name": "Brake_Status", "period_s": 0.020, "jitter_s": 0.004, "dlc": 4},
-    0x300: {"name": "Steering_Angle", "period_s": 0.020, "jitter_s": 0.004, "dlc": 4},
-    0x400: {"name": "Body_Control_Doors_Lights", "period_s": 0.100, "jitter_s": 0.010, "dlc": 4},
-    0x500: {"name": "Battery_Temp_Voltage", "period_s": 0.200, "jitter_s": 0.020, "dlc": 6},
-    0x7E0: {"name": "Diagnostic_Gateway_Response", "period_s": None, "jitter_s": 0.0, "dlc": 8},
+    0x100: {"name": "Engine_RPM_Speed", "period_s": 0.010, "jitter_s": 0.002, "dlc": 8, "is_fd": False},
+    0x200: {"name": "Brake_Status", "period_s": 0.020, "jitter_s": 0.004, "dlc": 4, "is_fd": False},
+    0x300: {"name": "Steering_Angle", "period_s": 0.020, "jitter_s": 0.004, "dlc": 4, "is_fd": False},
+    0x400: {"name": "Body_Control_Doors_Lights", "period_s": 0.100, "jitter_s": 0.010, "dlc": 4, "is_fd": False},
+    0x500: {"name": "Battery_Temp_Voltage", "period_s": 0.200, "jitter_s": 0.020, "dlc": 6, "is_fd": False},
+    0x600: {"name": "ADAS_Sensor_Fusion", "period_s": 0.020, "jitter_s": 0.002, "dlc": 32, "is_fd": True},
+    0x7E0: {"name": "Diagnostic_Gateway_Response", "period_s": None, "jitter_s": 0.0, "dlc": 8, "is_fd": False},
 }
 
 # The set of arbitration IDs the IDS considers legitimate. Anything else
@@ -55,6 +59,7 @@ IDS_CONFIG = {
         0x300: 80,
         0x400: 20,
         0x500: 10,
+        0x600: 80,   # nominal ~50/window
         0x7E0: 20,
     },
     "default_max_msgs_per_window": 50,

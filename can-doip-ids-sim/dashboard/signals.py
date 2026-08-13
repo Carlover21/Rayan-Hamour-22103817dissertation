@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """
 Semantic CAN signal encode/decode for the dashboard demo. The CLI/evaluation
 side of the project (src/carnet) uses random payloads since only traffic

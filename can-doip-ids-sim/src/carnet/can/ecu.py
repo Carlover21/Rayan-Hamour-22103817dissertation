@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """
 Virtual ECU: a simulated node that periodically transmits one CAN arbitration
 ID with jitter, approximating the periodic broadcast behaviour of real
@@ -26,6 +27,7 @@ class VirtualECU:
         period_s: float,
         jitter_s: float = 0.0,
         dlc: int = 8,
+        is_fd: bool = False,
         secoc: SecOCContext | None = None,
         silenced_ids: set[int] | None = None,
     ):
@@ -35,6 +37,7 @@ class VirtualECU:
         self.period_s = period_s
         self.jitter_s = jitter_s
         self.dlc = dlc
+        self.is_fd = is_fd
         self.secoc = secoc
         self.silenced_ids = silenced_ids
         self._stop_event = threading.Event()
@@ -44,7 +47,7 @@ class VirtualECU:
     def _next_payload(self) -> bytes:
         payload = bytes(random.randint(0, 255) for _ in range(self.dlc))
         if self.secoc is not None:
-            payload = self.secoc.protect(self.arbitration_id, payload)
+            payload = self.secoc.protect(self.arbitration_id, payload, frame_len=self.dlc)
         return payload
 
     def _run(self) -> None:
@@ -54,6 +57,7 @@ class VirtualECU:
                     arbitration_id=self.arbitration_id,
                     data=self._next_payload(),
                     is_extended_id=False,
+                    is_fd=self.is_fd,
                 )
                 try:
                     self.bus.send(msg)

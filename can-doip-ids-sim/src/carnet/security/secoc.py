@@ -1,13 +1,15 @@
+# Author: Rayan Hamour (22103817)
 """
 Simplified SecOC-style message authentication (loosely modelled on AUTOSAR
 Secure Onboard Communication), not a spec-accurate implementation: real
 SecOC uses a configurable truncated CMAC/HMAC length and a windowed
-freshness value synchronised out-of-band. Here every authenticated CAN
-frame carries 4 bytes of payload, a 1-byte rolling counter, and a 3-byte
-truncated HMAC-SHA256 - enough to demonstrate the security property that
-matters for this project: only a party holding the per-ID key can produce
-a frame the verifier accepts, and a captured frame cannot be replayed once
-its counter has been superseded.
+freshness value synchronised out-of-band. Here every authenticated frame
+reserves its last 4 bytes for a 1-byte rolling counter and a 3-byte
+truncated HMAC-SHA256, with the rest of the frame (4 bytes on classic CAN,
+up to 60 on CAN-FD) carrying the real payload - enough to demonstrate the
+security property that matters for this project: only a party holding the
+per-ID key can produce a frame the verifier accepts, and a captured frame
+cannot be replayed once its counter has been superseded.
 
 Per-arbitration-ID keys are derived from one master key, matching the real
 practice of scoping keys tightly (e.g. per-ECU or per-signal) rather than
@@ -48,20 +50,25 @@ class SecOCContext:
         self._tx_counters: dict[int, int] = {}
         self._rx_last_counter: dict[int, int] = {}
 
-    def protect(self, arbitration_id: int, payload: bytes) -> bytes:
+    def protect(self, arbitration_id: int, payload: bytes, frame_len: int = 8) -> bytes:
+        """frame_len is the total wire size (classic CAN: up to 8; CAN-FD:
+        up to 64) - the last 1+MAC_LEN bytes are always counter+MAC, so the
+        usable payload portion shrinks accordingly. Defaults to 8 to match
+        classic-CAN callers exactly as before."""
         counter = self._tx_counters.get(arbitration_id, 0)
         self._tx_counters[arbitration_id] = (counter + 1) % COUNTER_MAX
-        payload4 = payload[:4].ljust(4, b"\x00")
+        payload_len = max(frame_len - 1 - MAC_LEN, 0)
+        payload_portion = payload[:payload_len].ljust(payload_len, b"\x00")
         id_key = derive_id_key(self.master_key, arbitration_id)
-        mac = _compute_mac(id_key, arbitration_id, counter, payload4)
-        return payload4 + bytes([counter]) + mac
+        mac = _compute_mac(id_key, arbitration_id, counter, payload_portion)
+        return payload_portion + bytes([counter]) + mac
 
     def verify(self, arbitration_id: int, data: bytes) -> tuple[bool, str]:
-        if len(data) < 4 + 1 + MAC_LEN:
+        if len(data) < 1 + MAC_LEN:
             return False, "short_frame"
-        payload4, counter, mac = data[0:4], data[4], data[5 : 5 + MAC_LEN]
+        payload_portion, counter, mac = data[:-1 - MAC_LEN], data[-1 - MAC_LEN], data[-MAC_LEN:]
         id_key = derive_id_key(self.master_key, arbitration_id)
-        expected = _compute_mac(id_key, arbitration_id, counter, payload4)
+        expected = _compute_mac(id_key, arbitration_id, counter, payload_portion)
         if not hmac.compare_digest(mac, expected):
             return False, "mac_invalid"
 

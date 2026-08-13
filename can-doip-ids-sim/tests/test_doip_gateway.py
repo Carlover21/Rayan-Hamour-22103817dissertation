@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """Unit tests for the mocked DoIP gateway's authorization logic."""
 
 from __future__ import annotations

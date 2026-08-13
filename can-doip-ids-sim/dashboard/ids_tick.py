@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """
 Rule-based IDS for the live dashboard: same three rules as
 carnet.ids.detector.RuleBasedIDS (unknown ID, rate threshold, timing

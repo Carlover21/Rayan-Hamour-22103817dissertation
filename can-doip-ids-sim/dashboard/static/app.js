@@ -1,3 +1,4 @@
+// Author: Rayan Hamour (22103817)
 const LANES = [
   { id: 0x300, name: "0x300 STEERING", color: "#4f8fd1" },
   { id: 0x100, name: "0x100 SPEED", color: "#4f9d69" },
@@ -28,6 +29,11 @@ let lastKnownPaused = false;
 // vehicle interpolation between the last two polled snapshots
 let prevVehicle = null, currVehicle = null;
 let prevVehicleVT = 0, currVehicleVT = 0;
+
+// history scrub/replay (only meaningful while paused)
+let scrubbedVehicle = null;
+let scrubActive = false;
+let pausedAtVT = 0;
 
 let recentMsgTimes = [];
 
@@ -93,6 +99,7 @@ async function poll() {
     updateHeader(state);
     updateReadouts(state);
     updateWarningLights(state);
+    updateScrubVisibility(state);
     $("#alert-count-badge").textContent = state.total_alerts;
     $("#msg-rate-meta").textContent = `${recentMsgTimes.length} msg/s`;
     $("#pos-meta").textContent = `x=${state.vehicle.x_m.toFixed(1)}m`;
@@ -106,7 +113,7 @@ function updateHeader(state) {
   $("#clock").textContent = `t=${state.virtual_time.toFixed(3)}s  x${state.speed}${state.paused ? "  PAUSED" : ""}`;
   const banner = $("#status-banner");
   if (state.vehicle.off_road) {
-    banner.textContent = "OFF ROAD — IMPACT";
+    banner.textContent = "OFF ROAD - IMPACT";
     banner.className = "crash";
   } else if (state.active_attack) {
     banner.textContent = `ATTACK: ${state.active_attack.kind.toUpperCase()} -> ${state.active_attack.target}`;
@@ -126,6 +133,25 @@ function updateReadouts(state) {
   const brakeEl = $("#brake-val");
   brakeEl.textContent = state.signals.brake ? "APPLIED" : "RELEASED";
   brakeEl.className = "value " + (state.signals.brake ? "on" : "off");
+  $("#rpm-val").textContent = `${Math.round(state.signals.rpm)}`;
+  $("#battery-val").textContent = `${state.signals.battery_v.toFixed(1)}V`;
+}
+
+function updateScrubVisibility(state) {
+  const field = $("#scrub-field");
+  const slider = $("#scrub-slider");
+  if (state.paused) {
+    if (field.style.display === "none") {
+      pausedAtVT = state.virtual_time;
+      slider.value = 1000;
+      $("#scrub-out").textContent = "live";
+    }
+    field.style.display = "block";
+  } else {
+    field.style.display = "none";
+    scrubActive = false;
+    scrubbedVehicle = null;
+  }
 }
 
 function updateWarningLights(state) {
@@ -185,6 +211,7 @@ function lerpAngle(a, b, t) {
 }
 
 function interpolatedVehicle() {
+  if (scrubActive && scrubbedVehicle) return scrubbedVehicle;
   if (!currVehicle) return null;
   if (!prevVehicle || currVehicleVT <= prevVehicleVT) return currVehicle;
   const vt = currentPredictedVT();
@@ -508,6 +535,8 @@ $("#btn-reset").addEventListener("click", async () => {
   currVehicle = null;
   glitchUntil = 0;
   deniedFlashUntil = 0;
+  scrubActive = false;
+  scrubbedVehicle = null;
   $("#alert-feed").innerHTML = "";
   $("#doip-feed").innerHTML = "";
 });
@@ -541,6 +570,29 @@ $("#btn-attack-start").addEventListener("click", async () => {
 
 $("#btn-attack-stop").addEventListener("click", async () => {
   await postJSON("/api/attack/stop");
+});
+
+const scrubSlider = $("#scrub-slider");
+scrubSlider.addEventListener("input", async () => {
+  const frac = parseInt(scrubSlider.value, 10) / 1000;
+  if (frac >= 0.999) {
+    scrubActive = false;
+    scrubbedVehicle = null;
+    $("#scrub-out").textContent = "live";
+    return;
+  }
+  const targetT = frac * pausedAtVT;
+  $("#scrub-out").textContent = `${targetT.toFixed(1)}s`;
+  try {
+    const res = await fetch(`/api/scrub?t=${targetT}`);
+    const data = await res.json();
+    if (data.ok) {
+      scrubbedVehicle = data.vehicle;
+      scrubActive = true;
+    }
+  } catch (err) {
+    console.error("scrub failed", err);
+  }
 });
 
 poll();

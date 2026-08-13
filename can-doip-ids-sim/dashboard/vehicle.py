@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """
 Minimal vehicle dynamics model: turns the *decoded* CAN signal values
 (steering angle, speed, brake) into a car position/heading on a road, so an

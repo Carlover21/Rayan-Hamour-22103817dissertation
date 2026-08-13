@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """
 Rule-based intrusion detection for the simulated CAN bus.
 
@@ -12,9 +13,9 @@ Five independent rules, each able to fire on its own:
                       still doesn''t match the legitimate ECU''s cadence).
 4. Auth invalid     - (only when a SecOCContext is supplied) the frame''s
                       MAC/freshness counter doesn''t verify against the
-                      per-ID key - catches spoofing/replay/gateway-forwarded
-                      injection regardless of rate or timing, since the
-                      attacker never holds the key.
+                      per-ID key. Catches spoofing, replay, and
+                      gateway-forwarded injection regardless of rate or
+                      timing, because the attacker never holds the key.
 5. Silence          - a periodic ID has gone quiet far longer than its
                       nominal period, e.g. after a bus-off attack silences
                       its legitimate sender. Complements rule 2: that one
@@ -57,7 +58,7 @@ class RuleBasedIDS(can.Listener):
         self._silence_thread.start()
 
     def _silence_loop(self) -> None:
-        # Silence can only be noticed by polling for absence - a can.Listener
+        # Silence can only be noticed by polling for absence: a can.Listener
         # only ever fires when a message *does* arrive.
         while not self._stop_event.wait(0.1):
             self.check_silence()
@@ -123,7 +124,7 @@ class RuleBasedIDS(can.Listener):
 
     def check_silence(self) -> None:
         """Call periodically (not per-message) to catch IDs that have gone
-        quiet - a message-driven listener alone can never notice absence."""
+        quiet. A message-driven listener alone can never notice absence."""
         now = self.now()
         with self._lock:
             for arb_id, profile in ECU_PROFILE.items():

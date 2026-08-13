@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """
 Virtual CAN bus helpers.
 

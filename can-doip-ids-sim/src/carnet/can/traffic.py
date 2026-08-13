@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """
 Normal traffic generator: spins up one VirtualECU per entry in ECU_PROFILE
 that has a periodic schedule, giving a repeatable "baseline" of legitimate
@@ -33,6 +34,7 @@ class TrafficGenerator:
                     period_s=profile["period_s"],
                     jitter_s=profile["jitter_s"],
                     dlc=profile["dlc"],
+                    is_fd=profile.get("is_fd", False),
                     secoc=secoc,
                     silenced_ids=silenced_ids,
                 )

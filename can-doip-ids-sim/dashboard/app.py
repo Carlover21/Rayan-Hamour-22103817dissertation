@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """
 Flask app serving the live CAN/DoIP attack dashboard: a polling JSON API
 backed by the tick-based SimEngine, plus the static frontend (car/road
@@ -59,6 +60,17 @@ def api_resume_realtime():
 def api_reset():
     engine.reset_scenario()
     return jsonify({"ok": True})
+
+
+@app.get("/api/scrub")
+def api_scrub():
+    t = request.args.get("t", type=float)
+    if t is None:
+        return jsonify({"ok": False, "error": "t (virtual time) is required"}), 400
+    vehicle = engine.get_vehicle_at(t)
+    if vehicle is None:
+        return jsonify({"ok": False, "error": "no history recorded yet"}), 404
+    return jsonify({"ok": True, "t": t, "vehicle": vehicle})
 
 
 @app.post("/api/attack/start")

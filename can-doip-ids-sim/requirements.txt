@@ -4,3 +4,10 @@ pandas>=3.0
 pytest>=8.0
 flask>=3.1
 scikit-learn>=1.9
+
+# LSTM sequence detector (carnet.ids.sequence_dl) - optional, not required
+# for the core package or the base evaluation. Install the CPU-only wheel
+# (much smaller/faster than the CUDA-inclusive default) with:
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch>=2.0

@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """
 Tick-based simulation engine driving the live dashboard.
 
@@ -45,6 +46,12 @@ TICK_INTERVAL_S = 1.0 / TICK_HZ
 MAX_MESSAGES = 3000
 MAX_ALERTS = 500
 MAX_DOIP_EVENTS = 200
+MAX_VEHICLE_HISTORY = 6000  # ~2 minutes of history at 50Hz, for the scrub/replay control
+
+IDLE_RPM = 800
+MAX_RPM = 6500
+BATTERY_MIN_V = 11.5
+BATTERY_MAX_V = 14.0
 
 TARGET_NAME_TO_ID = {
     "steering": STEERING_ID,
@@ -89,13 +96,14 @@ class SimEngine:
         self.paused = False
 
         self.vehicle = VehicleState()
-        self.signals = {STEERING_ID: 0.0, SPEED_ID: CRUISE_SPEED_KMH, BRAKE_ID: False}
+        self.signals = {STEERING_ID: 0.0, SPEED_ID: CRUISE_SPEED_KMH, BRAKE_ID: False, BATTERY_ID: 0}
 
         self.ids = TickIDS()
         self.doip_gateway = DashboardDoIPGateway()
 
         self.messages: deque = deque(maxlen=MAX_MESSAGES)
         self.doip_events: deque = deque(maxlen=MAX_DOIP_EVENTS)
+        self.vehicle_history: deque = deque(maxlen=MAX_VEHICLE_HISTORY)
         self._msg_seq = 1
 
         self._speed_src = NormalSignalSource(start=CRUISE_SPEED_KMH, step=1.5, low=40.0, high=80.0)
@@ -193,6 +201,7 @@ class SimEngine:
         target_speed = self.signals[SPEED_ID]
         brake = self.signals[BRAKE_ID]
         self.vehicle.step(virtual_dt, steering, target_speed, brake)
+        self.vehicle_history.append((self.virtual_time, self.vehicle.as_dict()))
 
     def _emit(self, arb_id: int, data: bytes, source: str, now: float) -> None:
         if arb_id == STEERING_ID:
@@ -201,6 +210,8 @@ class SimEngine:
             self.signals[SPEED_ID] = decode_speed_kmh(data)
         elif arb_id == BRAKE_ID:
             self.signals[BRAKE_ID] = decode_brake(data)
+        elif arb_id == BATTERY_ID and len(data) > 0:
+            self.signals[BATTERY_ID] = data[0]
 
         self.ids.on_message(now, arb_id)
         self.messages.append(
@@ -349,9 +360,41 @@ class SimEngine:
             self.doip_gateway.reset()
             self.messages.clear()
             self.doip_events.clear()
-            self.signals = {STEERING_ID: 0.0, SPEED_ID: CRUISE_SPEED_KMH, BRAKE_ID: False}
+            self.vehicle_history.clear()
+            self.signals = {STEERING_ID: 0.0, SPEED_ID: CRUISE_SPEED_KMH, BRAKE_ID: False, BATTERY_ID: 0}
             self._speed_src = NormalSignalSource(start=CRUISE_SPEED_KMH, step=1.5, low=40.0, high=80.0)
             self._brake_src = BrakeTapSource()
+
+    def _estimate_rpm(self) -> float:
+        # Purely cosmetic derived telemetry (no separate RPM CAN signal
+        # exists in this model): idle plus a linear scaling with speed,
+        # clipped to a plausible range, so the gauge has something to show.
+        speed = self.vehicle.speed_kmh
+        return max(IDLE_RPM, min(MAX_RPM, IDLE_RPM + speed * 45))
+
+    def _decode_battery_v(self) -> float:
+        byte0 = self.signals.get(BATTERY_ID, 0)
+        return BATTERY_MIN_V + (byte0 / 255.0) * (BATTERY_MAX_V - BATTERY_MIN_V)
+
+    def get_vehicle_at(self, t: float) -> dict | None:
+        """Nearest recorded vehicle snapshot to virtual time `t`, for the
+        scrub/replay control - binary search over the history deque."""
+        with self.lock:
+            if not self.vehicle_history:
+                return None
+            history = self.vehicle_history
+            lo, hi = 0, len(history) - 1
+            if t <= history[0][0]:
+                return history[0][1]
+            if t >= history[-1][0]:
+                return history[-1][1]
+            while lo < hi:
+                mid = (lo + hi) // 2
+                if history[mid][0] < t:
+                    lo = mid + 1
+                else:
+                    hi = mid
+            return history[lo][1]
 
     # -- state export --------------------------------------------------------
     def get_state(self, since_msg_seq: int = 0, since_alert_seq: int = 0, since_doip_seq: int = 0) -> dict:
@@ -368,6 +411,8 @@ class SimEngine:
                     "steering_deg": round(self.signals[STEERING_ID], 2),
                     "speed_kmh": round(self.signals[SPEED_ID], 1),
                     "brake": self.signals[BRAKE_ID],
+                    "rpm": round(self._estimate_rpm()),
+                    "battery_v": round(self._decode_battery_v(), 2),
                 },
                 "active_attack": (
                     {

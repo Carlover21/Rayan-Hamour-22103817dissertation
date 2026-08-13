@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """
 Dashboard DoIP gateway: same conceptual model as carnet.doip.gateway
 (routing activation required before diagnostic messages are forwarded onto

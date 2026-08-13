@@ -1,3 +1,4 @@
+/* Author: Rayan Hamour (22103817) */
 :root {
   color-scheme: dark;
   --bg: #0b0d10;
@@ -163,6 +164,8 @@ canvas { display: block; width: 100%; background: var(--panel-2); }
 .readout.speed .value { color: var(--speed); }
 .readout.brake .value.on { color: var(--brake); }
 .readout.brake .value.off { color: var(--dim); }
+.readout.rpm .value { color: var(--warn); font-size: 15px; }
+.readout.battery .value { color: var(--diag); font-size: 15px; }
 
 #right-col { display: flex; flex-direction: column; gap: 10px; overflow: hidden; }
 

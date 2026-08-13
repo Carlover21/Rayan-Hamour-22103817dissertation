@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """
 Full evaluation run: sweeps flood, spoofing, and DoIP-injection attacks
 across several intensities (with repeats), scores IDS detection rate and

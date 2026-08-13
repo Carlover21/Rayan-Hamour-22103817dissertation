@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """
 CAN traffic logger: a can.Listener that records every observed frame, both
 in memory (for the evaluation harness to analyse) and optionally to CSV

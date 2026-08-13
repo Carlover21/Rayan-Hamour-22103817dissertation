@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """
 Attack scenario registry: a uniform way for the evaluation harness to launch
 any attack by name with a dict of parameters, and to know which CAN IDs (if
@@ -11,11 +12,13 @@ from typing import Any
 
 import can
 
+from carnet.attacks.adversarial_ml import run_adversarial_ml_evasion_attack
 from carnet.attacks.busoff import run_busoff_attack
 from carnet.attacks.doip_injection import run_doip_injection_attack
 from carnet.attacks.flood import run_flood_attack
 from carnet.attacks.infotainment_pivot import run_infotainment_pivot_attack
 from carnet.attacks.key_fob_relay import run_key_fob_relay_attack
+from carnet.attacks.mimicry import run_mimicry_attack
 from carnet.attacks.spoof import run_spoofing_attack
 from carnet.doip.gateway import DoIPGateway
 
@@ -23,7 +26,8 @@ from carnet.doip.gateway import DoIPGateway
 @dataclass
 class AttackScenario:
     name: str
-    kind: str  # "flood" | "spoof" | "doip_injection" | "busoff" | "infotainment_pivot" | "key_fob_relay"
+    kind: str  # "flood" | "spoof" | "doip_injection" | "busoff" | "infotainment_pivot"
+    #             | "key_fob_relay" | "mimicry" | "adversarial_ml"
     params: dict[str, Any] = field(default_factory=dict)
     target_can_id: int | None = None  # CAN ID this attack manifests on, for scoring
 
@@ -45,4 +49,8 @@ def run_scenario(scenario: AttackScenario, bus: can.Bus, gateway: DoIPGateway) -
     if scenario.kind == "key_fob_relay":
         sent = run_key_fob_relay_attack(bus=bus, **scenario.params)
         return {"sent": sent}
+    if scenario.kind == "mimicry":
+        return run_mimicry_attack(bus=bus, **scenario.params)
+    if scenario.kind == "adversarial_ml":
+        return run_adversarial_ml_evasion_attack(bus=bus, **scenario.params)
     raise ValueError(f"Unknown attack kind: {scenario.kind}")

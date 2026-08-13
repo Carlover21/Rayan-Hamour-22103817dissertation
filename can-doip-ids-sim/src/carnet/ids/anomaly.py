@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """
 ML-based intrusion detection, for direct comparison against the rule-based
 detector - several of the papers in this project''s literature review use

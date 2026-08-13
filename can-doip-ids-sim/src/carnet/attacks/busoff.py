@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """
 Bus-off attack: exploits CAN's own error-handling state machine rather than
 sending an implausible volume of traffic. A real CAN controller keeps a

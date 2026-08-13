@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """
 Flooding / denial-of-service attack: an attacker-controlled node blasts a
 target arbitration ID at a rate far above its legitimate period, aiming to

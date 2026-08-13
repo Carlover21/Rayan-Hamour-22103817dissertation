@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """
 Infotainment-pivot attack: models an attacker who never touches the DoIP
 diagnostic path at all, and instead compromises the infotainment/telematics

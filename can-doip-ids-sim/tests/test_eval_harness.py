@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """Unit tests for the evaluation harness (eval.harness.run_trial).
 
 These exercise the real threaded pipeline (bus, traffic, IDS, notifier)

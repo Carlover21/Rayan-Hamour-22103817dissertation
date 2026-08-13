@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """Unit tests for the ML-based (IsolationForest) anomaly detector."""
 
 from __future__ import annotations

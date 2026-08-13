@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """
 Identifier spoofing attack: an attacker impersonates a legitimate ECU by
 injecting extra frames on that ECU''s arbitration ID with attacker-chosen

@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """
 Unauthorized CAN injection via DoIP: models a remote, IP-connected attacker
 that reaches the DoIP gateway and attempts to inject diagnostic payloads

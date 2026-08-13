@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """
 Mocked DoIP message model.
 

@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """
 Single-scenario demo: runs a short baseline period of normal in-vehicle
 traffic, launches one attack (flood on the engine ID by default), and

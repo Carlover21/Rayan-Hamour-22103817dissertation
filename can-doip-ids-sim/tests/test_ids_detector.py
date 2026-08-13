@@ -1,3 +1,4 @@
+# Author: Rayan Hamour (22103817)
 """Unit tests for the rule-based IDS, using synthetic can.Message objects
 directly (no real bus/timing involved) so they run fast and deterministically.
 """
